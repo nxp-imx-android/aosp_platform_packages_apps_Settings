@@ -681,11 +681,15 @@ public class UserSettings extends SettingsPreferenceFragment
                     synchronized (mUserLock) {
                         if (userType == USER_TYPE_USER) {
                             mHandler.sendEmptyMessage(MESSAGE_UPDATE_LIST);
-                            mHandler.sendMessage(mHandler.obtainMessage(
+                            if (user != null) {
+                                mHandler.sendMessage(mHandler.obtainMessage(
                                     MESSAGE_SETUP_USER, user.id, user.serialNumber));
+                            }
                         } else {
-                            mHandler.sendMessage(mHandler.obtainMessage(
+                            if (user != null) {
+                                mHandler.sendMessage(mHandler.obtainMessage(
                                     MESSAGE_CONFIG_USER, user.id, user.serialNumber));
+                            }
                         }
                     }
                 }
