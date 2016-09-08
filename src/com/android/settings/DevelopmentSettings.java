@@ -402,7 +402,7 @@ public class DevelopmentSettings extends RestrictedSettingsFragment
 	//wheather the selinux was set should be checked firstly
 	mselinux_flag = true;
 	String selinux_result = SystemProperties.get("ro.boot.selinux");
-	if(selinux_result.equals("disabled")){
+	if(selinux_result.equals("permissive")){
 		mselinux_flag = false;
 	}else{
 		mselinux_flag = true;
