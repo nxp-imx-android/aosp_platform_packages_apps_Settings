@@ -47,6 +47,7 @@ import android.support.v7.preference.PreferenceScreen;
 import android.support.v7.preference.PreferenceViewHolder;
 import android.util.Slog;
 import android.util.TypedValue;
+import android.util.AttributeSet;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -326,31 +327,8 @@ public final class WifiDisplaySettings extends SettingsPreferenceFragment {
 
             // show buttons for Pause/Resume when a WFD session is established
             if (mWifiDisplayStatus.getSessionInfo().getSessionId() != 0) {
-                mCertCategory.addPreference(new Preference(getPrefContext()) {
-                    @Override
-                    public void onBindViewHolder(PreferenceViewHolder view) {
-                        super.onBindViewHolder(view);
-
-                        Button b = (Button) view.findViewById(R.id.left_button);
-                        b.setText(R.string.wifi_display_pause);
-                        b.setOnClickListener(new OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                mDisplayManager.pauseWifiDisplay();
-                            }
-                        });
-
-                        b = (Button) view.findViewById(R.id.right_button);
-                        b.setText(R.string.wifi_display_resume);
-                        b.setOnClickListener(new OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                mDisplayManager.resumeWifiDisplay();
-                            }
-                        });
-                    }
-                });
-                mCertCategory.setLayoutResource(R.layout.two_buttons_panel);
+                ButtonPreference p1 = new ButtonPreference(getActivity());
+                mCertCategory.addPreference(p1);
             }
         }
 
@@ -744,4 +722,51 @@ public final class WifiDisplaySettings extends SettingsPreferenceFragment {
             return true;
         }
     }
+
+    public class ButtonPreference extends Preference {
+
+        Button leftButton;
+        Button rightButton;
+
+        public ButtonPreference(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+            super(context, attrs, defStyleAttr, defStyleRes);
+            setLayoutResource(R.layout.two_buttons_panel);
+        }
+
+        public ButtonPreference(Context context, AttributeSet attrs, int defStyleAttr) {
+            this(context, attrs, defStyleAttr, 0);
+        }
+
+        public ButtonPreference(Context context, AttributeSet attrs) {
+            this(context, attrs, 0);
+        }
+
+        public ButtonPreference(Context context) {
+            this(context, null);
+        }
+
+        @Override
+        public void onBindViewHolder(final PreferenceViewHolder view) {
+            super.onBindViewHolder(view);
+
+            leftButton = (Button) view.findViewById(R.id.left_button);
+            leftButton.setText(R.string.wifi_display_pause);
+            leftButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mDisplayManager.pauseWifiDisplay();
+                }
+            });
+
+            rightButton = (Button) view.findViewById(R.id.right_button);
+            rightButton.setText(R.string.wifi_display_resume);
+            rightButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mDisplayManager.resumeWifiDisplay();
+                }
+            });
+        }
+    }
+
 }
