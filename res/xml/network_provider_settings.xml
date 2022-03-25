@@ -73,6 +73,12 @@
         android:fragment="com.android.settings.wifi.ConfigureWifiSettings"/>
 
     <Preference
+        android:key="configure_ethernet_settings"
+        android:title="@string/ethernet"
+        settings:allowDividerAbove="true"
+        android:fragment="com.android.settings.ethernet.EthernetSettings"/>
+
+    <Preference
         android:key="saved_networks"
         android:title="@string/wifi_saved_access_points_label"
         android:fragment="com.android.settings.wifi.savedaccesspoints2.SavedAccessPointsWifiSettings2"/>
