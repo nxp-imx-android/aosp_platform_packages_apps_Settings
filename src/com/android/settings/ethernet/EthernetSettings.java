@@ -36,14 +36,14 @@ import com.android.settings.R;
 
 public class EthernetSettings extends DashboardFragment implements Preference.OnPreferenceChangeListener, Indexable {
     private static final String TAG = "EthernetSettings";
-    private final String KEY_ETH_MAC_ADDRESS = getResources().getString(R.string.eth_mac_address);
-    private final String KEY_ETH_IP_ADDRESS = getResources().getString(R.string.eth_ipaddr);
-    private final String KEY_ETH_NET_MASK = getResources().getString(R.string.eth_mask);
-    private final String KEY_ETH_GATEWAY = getResources().getString(R.string.eth_gw);
-    private final String KEY_ETH_DNS1 = getResources().getString(R.string.eth_dns1);
-    private final String KEY_ETH_DNS2 = getResources().getString(R.string.eth_dns2);
-    private final String KEY_ETH_IPV6_ADDRESS = getResources().getString(R.string.eth_ipv6addr);
-    private final String KEY_ETH_STATIC_CONFIG = getResources().getString(R.string.eth_static_config);
+    private String KEY_ETH_MAC_ADDRESS ;
+    private String KEY_ETH_IP_ADDRESS;
+    private String KEY_ETH_NET_MASK;
+    private String KEY_ETH_GATEWAY;
+    private String KEY_ETH_DNS1;
+    private String KEY_ETH_DNS2;
+    private String KEY_ETH_IPV6_ADDRESS;
+    private String KEY_ETH_STATIC_CONFIG;
 
     private EthernetDialog mEthDialog = null;
     private Preference mEthConfigPref;
@@ -89,6 +89,16 @@ public class EthernetSettings extends DashboardFragment implements Preference.On
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        KEY_ETH_MAC_ADDRESS = getResources().getString(R.string.eth_mac_address);
+        KEY_ETH_IP_ADDRESS = getResources().getString(R.string.eth_ipaddr);
+        KEY_ETH_NET_MASK = getResources().getString(R.string.eth_mask);
+        KEY_ETH_GATEWAY = getResources().getString(R.string.eth_gw);
+        KEY_ETH_DNS1 = getResources().getString(R.string.eth_dns1);
+        KEY_ETH_DNS2 = getResources().getString(R.string.eth_dns2);
+        KEY_ETH_IPV6_ADDRESS = getResources().getString(R.string.eth_ipv6addr);
+        KEY_ETH_STATIC_CONFIG = getResources().getString(R.string.eth_static_config);
+
         final PreferenceScreen preferenceScreen = getPreferenceScreen();
         mEthConfigPref = preferenceScreen.findPreference(KEY_ETH_STATIC_CONFIG);
         mIntentFilter = new IntentFilter();
