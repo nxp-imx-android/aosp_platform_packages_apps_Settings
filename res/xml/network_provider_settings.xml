@@ -68,12 +68,6 @@
         android:layout="@layout/preference_category_no_label"/>
 
     <Preference
-        android:key="configure_ethernet_settings"
-        android:title="@string/ethernet"
-        settings:allowDividerAbove="true"
-        android:fragment="com.android.settings.ethernet.EthernetSettings"/>
-
-    <Preference
         android:key="configure_wifi_settings"
         android:title="@string/network_and_internet_preferences_title"
         settings:allowDividerAbove="true"

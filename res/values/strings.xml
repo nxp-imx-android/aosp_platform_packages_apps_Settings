@@ -13603,17 +13603,4 @@
     <string name="bluetooth_connect_access_dialog_negative">Don\u2019t connect</string>
     <!-- Strings for Dialog connect button -->
     <string name="bluetooth_connect_access_dialog_positive">Connect</string>
-
-    <string name="eth_conf_perf_title">Ethernet Configuration</string>
-    <string name="eth_config_title">Configure Ethernet</string>
-    <string name="eth_con_type_dhcp">DHCP</string>
-    <string name="eth_con_type_manual">Static IP</string>
-    <string name="eth_mac_address">eth_mac_address</string>
-    <string name="eth_ipaddr">eth_ipaddr</string>
-    <string name="eth_mask">eth_mask</string>
-    <string name="eth_gw">eth_gw</string>
-    <string name="eth_dns1">eth_dns1</string>
-    <string name="eth_dns2">eth_dns2</string>
-    <string name="eth_ipv6addr">eth_ipv6addr</string>
-    <string name="eth_static_config">eth_static_config</string>
 </resources>
