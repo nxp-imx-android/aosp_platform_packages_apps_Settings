@@ -52,6 +52,17 @@ import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.util.ArrayList;
 
+import android.net.EthernetManager.InterfaceStateListener;
+import android.net.IpConfiguration;
+import android.os.Handler;
+import android.util.ArrayMap;
+import com.android.settingslib.utils.ThreadUtils;
+import java.util.Arrays;
+
+import android.net.IpConfiguration;
+import android.net.EthernetNetworkUpdateRequest;
+import android.net.NetworkCapabilities;
+
 class EthernetDialog extends AlertDialog implements DialogInterface.OnClickListener, DialogInterface.OnShowListener, DialogInterface.OnDismissListener, AdapterView.OnItemSelectedListener {
     private final String TAG = "EthConfDialog";
     private static final String DEFAULT_ADDRESS = "0.0.0.0";
@@ -84,6 +95,11 @@ class EthernetDialog extends AlertDialog implements DialogInterface.OnClickListe
     private ConnectivityManager mCm;
     private EthernetManager mEthManager;
 
+    InterfaceStateListener mEthernetListener;
+    ArrayMap<String, IpConfiguration> mAvailableInterfaces = new ArrayMap<>();
+    Handler mUiHandler = ThreadUtils.getUiThreadHandler();
+    IpConfiguration mIpConfiguration = new IpConfiguration();
+
     public EthernetDialog(Context context, ConnectivityManager cm, EthernetManager ethManager) {
         super(context);
         mContext = context;
@@ -92,6 +108,19 @@ class EthernetDialog extends AlertDialog implements DialogInterface.OnClickListe
         buildDialogContent(context);
         setOnShowListener(this);
         setOnDismissListener(this);
+
+        mEthernetListener = (iface, state, role, configuration) -> {
+            if (state == mEthManager.STATE_LINK_UP) {
+                mAvailableInterfaces.put(iface, configuration);
+            } else {
+                mAvailableInterfaces.remove(iface);
+            }
+        };
+
+        if (mEthManager != null) {
+            mEthManager.addInterfaceStateListener(r -> mUiHandler.post(r),
+                    mEthernetListener);
+        }
     }
 
     public void onShow(DialogInterface dialog) {
@@ -126,8 +155,8 @@ class EthernetDialog extends AlertDialog implements DialogInterface.OnClickListe
 
     public String getifaceName(){
         String mInterfaceName = "";
-        String[] ifaces = mEthManager.getAvailableInterfaces();
-
+        String[] ifaces = new String[2];
+        ifaces[0] = getEthernetInterfaceName();
         if (ifaces.length > 0) {
             mInterfaceName = ifaces[0];
             return mInterfaceName;
@@ -135,8 +164,38 @@ class EthernetDialog extends AlertDialog implements DialogInterface.OnClickListe
         return DEFAULT_IFACE;
     }
 
+    /**
+     * Get the current Ethernet interface name.
+     */
+    public String getEthernetInterfaceName() {
+        ensureRunningOnUiThread();
+        if (mAvailableInterfaces.size() == 0) return null;
+        return mAvailableInterfaces.keyAt(0);
+    }
+
+    /**
+     * Get the current IP configuration of Ethernet interface.
+     */
+    public IpConfiguration getEthernetIpConfiguration() {
+        ensureRunningOnUiThread();
+        if (mAvailableInterfaces.size() == 0) return null;
+        return mIpConfiguration;
+    }
+
+    public void ensureRunningOnUiThread() {
+        if (mUiHandler.getLooper().getThread() != Thread.currentThread()) {
+            throw new IllegalStateException("Not running on the UI thread: "
+                    + Thread.currentThread().getName());
+        }
+    }
+
+    public boolean isEthernetEnabled() {
+        return mEthManager != null;
+    }
+
     public boolean isEthernetAvailable() {
-        return mEthManager.getAvailableInterfaces().length > 0;
+        ensureRunningOnUiThread();
+        return isEthernetEnabled() && (mAvailableInterfaces.size() > 0);
     }
 
     public boolean isEthernetConnected() {
@@ -164,7 +223,7 @@ class EthernetDialog extends AlertDialog implements DialogInterface.OnClickListe
             }
 
             if (ethernetConnected) {
-                IpConfiguration config = mEthManager.getConfiguration(getifaceName());
+                IpConfiguration config = getEthernetIpConfiguration();
                 if (config != null) {
                     mIpAssignment = config.getIpAssignment();
                     if (mIpAssignment == IpAssignment.STATIC) {
@@ -225,7 +284,7 @@ class EthernetDialog extends AlertDialog implements DialogInterface.OnClickListe
     }
 
     private void showProxyFields() {
-        IpConfiguration config = mEthManager.getConfiguration(getifaceName());
+        IpConfiguration config = getEthernetIpConfiguration();
         if (mProxySettingsSpinner.getSelectedItemPosition() == PROXY_STATIC) {
             setVisibility(R.id.proxy_warning_limited_support, View.VISIBLE);
             setVisibility(R.id.proxy_fields, View.VISIBLE);
@@ -416,7 +475,6 @@ class EthernetDialog extends AlertDialog implements DialogInterface.OnClickListe
     private boolean setStatic() {
         try {
             setProxy();
-            IpConfiguration mIpConfiguration = new IpConfiguration();
             mIpConfiguration.setIpAssignment(IpConfiguration.IpAssignment.STATIC);
             final StaticIpConfiguration.Builder staticIpBuilder =
                     new StaticIpConfiguration.Builder();
@@ -475,8 +533,23 @@ class EthernetDialog extends AlertDialog implements DialogInterface.OnClickListe
             mIpConfiguration.setStaticIpConfiguration(staticIpBuilder.build());
             mIpConfiguration.setProxySettings(mProxySettings);
             mIpConfiguration.setHttpProxy(mHttpProxy);
-            mEthManager.setConfiguration(getifaceName(),mIpConfiguration);
-
+            final NetworkCapabilities nc = new NetworkCapabilities.Builder()
+                    .addTransportType(NetworkCapabilities.TRANSPORT_ETHERNET)
+                    .addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_ROAMING)
+                    .addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_CONGESTED)
+                    .addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_SUSPENDED)
+                    .addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)
+                    .addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VCN_MANAGED)
+                    .setLinkUpstreamBandwidthKbps(100 * 1000)
+                    .setLinkDownstreamBandwidthKbps(100 * 1000)
+                    .build();
+            final EthernetNetworkUpdateRequest request =
+                    new EthernetNetworkUpdateRequest.Builder()
+                            .setIpConfiguration(mIpConfiguration)
+                            .setNetworkCapabilities(nc)
+                            .build();
+            mEthManager.updateConfiguration(getEthernetInterfaceName(), request, r -> r.run(),
+                    null /* network listener */);
             return true;
         } catch (Exception e) {
             // TODO: handle exception
@@ -487,11 +560,10 @@ class EthernetDialog extends AlertDialog implements DialogInterface.OnClickListe
     private boolean setDhcp() {
         try {
             setProxy();
-            IpConfiguration mIpConfiguration = new IpConfiguration();
             mIpConfiguration.setIpAssignment(IpConfiguration.IpAssignment.DHCP);
             mIpConfiguration.setProxySettings(mProxySettings);
             mIpConfiguration.setHttpProxy(mHttpProxy);
-            mEthManager.setConfiguration(getifaceName(), mIpConfiguration);
+            mAvailableInterfaces.put(getifaceName(), mIpConfiguration);
 
             return true;
         } catch (Exception e) {
