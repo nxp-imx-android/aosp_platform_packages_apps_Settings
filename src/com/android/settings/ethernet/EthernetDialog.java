@@ -61,7 +61,6 @@ import java.util.Arrays;
 
 import android.net.IpConfiguration;
 import android.net.EthernetNetworkUpdateRequest;
-import android.net.NetworkCapabilities;
 
 class EthernetDialog extends AlertDialog implements DialogInterface.OnClickListener, DialogInterface.OnShowListener, DialogInterface.OnDismissListener, AdapterView.OnItemSelectedListener {
     private final String TAG = "EthConfDialog";
@@ -533,20 +532,9 @@ class EthernetDialog extends AlertDialog implements DialogInterface.OnClickListe
             mIpConfiguration.setStaticIpConfiguration(staticIpBuilder.build());
             mIpConfiguration.setProxySettings(mProxySettings);
             mIpConfiguration.setHttpProxy(mHttpProxy);
-            final NetworkCapabilities nc = new NetworkCapabilities.Builder()
-                    .addTransportType(NetworkCapabilities.TRANSPORT_ETHERNET)
-                    .addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_ROAMING)
-                    .addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_CONGESTED)
-                    .addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_SUSPENDED)
-                    .addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)
-                    .addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VCN_MANAGED)
-                    .setLinkUpstreamBandwidthKbps(100 * 1000)
-                    .setLinkDownstreamBandwidthKbps(100 * 1000)
-                    .build();
             final EthernetNetworkUpdateRequest request =
                     new EthernetNetworkUpdateRequest.Builder()
                             .setIpConfiguration(mIpConfiguration)
-                            .setNetworkCapabilities(nc)
                             .build();
             mEthManager.updateConfiguration(getEthernetInterfaceName(), request, r -> r.run(),
                     null /* network listener */);
