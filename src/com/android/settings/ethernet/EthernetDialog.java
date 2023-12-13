@@ -552,7 +552,12 @@ class EthernetDialog extends AlertDialog implements DialogInterface.OnClickListe
             mIpConfiguration.setProxySettings(mProxySettings);
             mIpConfiguration.setHttpProxy(mHttpProxy);
             mAvailableInterfaces.put(getifaceName(), mIpConfiguration);
-
+            final EthernetNetworkUpdateRequest request =
+                    new EthernetNetworkUpdateRequest.Builder()
+                            .setIpConfiguration(mIpConfiguration)
+                            .build();
+            mEthManager.updateConfiguration(getEthernetInterfaceName(), request, r -> r.run(),
+                    null /* network listener */);
             return true;
         } catch (Exception e) {
             // TODO: handle exception
