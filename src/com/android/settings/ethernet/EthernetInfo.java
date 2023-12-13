@@ -108,9 +108,19 @@ public class EthernetInfo {
 
             List<RouteInfo> routeInfoList = mLinkProp.getRoutes();
             if ((routeInfoList != null) && (!routeInfoList.isEmpty())) {
-                RouteInfo r = routeInfoList.get(routeInfoList.size() - 1);
-                InetAddress inetGateway = r.getGateway();
-                gatewayAddress = inetGateway.getHostAddress();
+                boolean foundDefaultRoute = false;
+                for (RouteInfo r : routeInfoList) {
+                    if (r.isDefaultRoute()) {
+                        gatewayAddress = r.getGateway().getHostAddress();
+                        foundDefaultRoute = true;
+                        break;
+                    }
+                }
+                if(!foundDefaultRoute) {
+                    RouteInfo r = routeInfoList.get(routeInfoList.size() - 1);
+                    InetAddress inetGateway = r.getGateway();
+                    gatewayAddress = inetGateway.getHostAddress();
+                }
             }
             List<InetAddress> dnsServerList = mLinkProp.getDnsServers();
             if ((dnsServerList != null) && (!dnsServerList.isEmpty())) {
